@@ -20,11 +20,11 @@
             --text-main: #1f2937;
             --text-light: #6b7280;
             
-            /* De geliefde paars/blauwe achtergrond */
+            /* Achtergrond */
             --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             
             --card-radius: 20px;
-            --speed: 0.25s; /* Snelle animaties */
+            --speed: 0.25s; /* Snelheid van schuiven */
         }
 
         body { 
@@ -34,7 +34,6 @@
             padding: 20px; 
             color: var(--text-main); 
             min-height: 100vh;
-            /* Flexbox zorgt voor centrering op grote schermen */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -43,29 +42,24 @@
             overflow: hidden; 
         }
 
-        /* --- RESPONSIEVE CONTAINER --- */
+        /* --- CONTAINER --- */
         .container { 
             width: 100%; 
-            max-width: 480px; /* Op desktop niet te breed */
+            max-width: 480px; 
             background: #ffffff; 
             border-radius: var(--card-radius); 
             box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
             display: flex;
             flex-direction: column;
             position: relative;
-            height: 85vh; /* Neemt bijna heel het scherm in */
+            height: 85vh; 
             max-height: 700px;
             overflow: hidden;
         }
 
-        /* Mobiele aanpassingen: beeldvullend */
         @media (max-width: 480px) {
             body { padding: 0; }
-            .container { 
-                height: 100vh; 
-                max-height: none; 
-                border-radius: 0; 
-            }
+            .container { height: 100vh; max-height: none; border-radius: 0; }
         }
 
         /* Navigatie */
@@ -105,22 +99,19 @@
             padding: 20px; 
             box-sizing: border-box; 
             flex: 1;
-            /* Zorgt dat inhoud niet buiten beeld valt */
             overflow-y: auto; 
             overflow-x: hidden;
         }
         .section.active { display: flex; }
 
-        /* --- KAART STIJL (AANGEPAST: Geen 3D draai meer, maar Fade) --- */
+        /* --- KAART STIJL --- */
         .card-stage { 
-            /* perspective: 1000px;  <-- VERWIJDERD zodat het plat blijft */
             width: 100%;
             height: 280px; 
             margin: 10px 0; 
             position: relative;
         }
         
-        /* De wrapper die beweegt (links/rechts) */
         .card-mover {
             width: 100%;
             height: 100%;
@@ -128,72 +119,51 @@
             transition: transform var(--speed) ease-out, opacity var(--speed) ease-out;
         }
 
-        /* De wrapper die de 'klik' afhandelt */
         .card-flipper { 
             width: 100%; 
             height: 100%; 
             position: relative; 
-            /* transform-style: preserve-3d; <-- VERWIJDERD */
-            transition: transform 0.2s ease; /* Snelle schaal-animatie */
+            transition: transform 0.2s ease; 
             cursor: pointer;
             border-radius: var(--card-radius);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
         
-        /* In plaats van draaien, maken we hem heel even iets kleiner (klik effect) */
-        .card-flipper.flipped { 
-            transform: scale(0.98); 
-        }
+        .card-flipper.flipped { transform: scale(0.98); }
 
         .front, .back { 
             position: absolute; width: 100%; height: 100%; 
-            /* backface-visibility: hidden; <-- NIET MEER NODIG */
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             padding: 20px; text-align: center; border-radius: var(--card-radius); 
             box-sizing: border-box; background: white; border: 1px solid #f3f4f6;
             
-            /* NIEUW: Fade effect */
+            /* Fade effect */
             transition: opacity 0.3s ease-in-out, visibility 0.3s;
         }
         
-        /* De voorkant is zichtbaar als standaard */
-        .front {
-            opacity: 1;
-            visibility: visible;
-            z-index: 2;
-        }
+        /* De voorkant (standaard zichtbaar) */
+        .front { opacity: 1; visibility: visible; z-index: 2; }
 
-        /* De achterkant */
+        /* De achterkant (standaard verborgen) */
         .back { 
-            /* transform: rotateY(180deg); <-- VERWIJDERD, tekst moet recht staan */
             background: #f8fafc; 
             border: 2px solid var(--primary); 
-            opacity: 0;
-            visibility: hidden;
-            z-index: 1;
+            opacity: 0; 
+            visibility: hidden; 
+            z-index: 1; 
         }
 
-        /* WANNEER GEFLIPT: */
-        .card-flipper.flipped .front {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .card-flipper.flipped .back {
-            opacity: 1;
-            visibility: visible;
-        }
+        /* States bij flip */
+        .card-flipper.flipped .front { opacity: 0; visibility: hidden; }
+        .card-flipper.flipped .back { opacity: 1; visibility: visible; }
 
         .content-front { font-size: 1.5em; font-weight: 700; color: var(--text-main); }
         .content-back { font-size: 1.7em; font-weight: 700; color: var(--primary); }
 
-        /* --- SIMPELE SCHUIF ANIMATIES --- */
-        /* Naar Links Weg */
+        /* --- SCHUIF ANIMATIES --- */
         .slide-out-left { transform: translateX(-50px); opacity: 0; }
-        /* Naar Rechts Weg */
         .slide-out-right { transform: translateX(50px); opacity: 0; }
         
-        /* Binnenkomen (startpositie wordt met JS gezet) */
         .slide-in { animation: slideIn var(--speed) ease-out forwards; }
         
         @keyframes slideIn {
@@ -207,7 +177,6 @@
             color: var(--text-light); font-size: 0.8em; font-weight: 600; margin-bottom: 10px;
         }
 
-        /* Toetsenbord/Controls */
         .controls-row {
             display: flex; justify-content: center; gap: 10px; margin-top: auto; 
             width: 100%; padding-top: 15px; border-top: 1px solid #f3f4f6;
@@ -222,7 +191,6 @@
         .icon-lg { font-size: 1.4em; margin-bottom: 2px; }
         .label-sm { font-size: 0.7em; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
 
-        /* Grote Knoppen (Goed/Fout) */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: auto; }
         
         .btn-big {
@@ -234,7 +202,6 @@
         .btn-correct { background: var(--success-bg); color: var(--success-text); }
         .btn-primary { background: var(--primary); color: white; width: 100%; margin-top: 10px;}
 
-        /* Input Veld */
         .input-modern { 
             width: 100%; padding: 15px; font-size: 1.2em; border: 2px solid #e5e7eb; 
             border-radius: 12px; margin-bottom: 20px; text-align: center; outline: none; 
@@ -531,35 +498,46 @@
         audio.play();
     }
 
-    // --- SIMPLE ANIMATION ENGINE ---
+    // --- ANIMATION ENGINE (FIXED VOOR SPOOKBEELD) ---
     function animateSimpleSwitch(moverId, flipperId, direction, callback) {
         const mover = document.getElementById(moverId);
         const flipper = document.getElementById(flipperId);
+        const front = flipper.querySelector('.front');
+        const back = flipper.querySelector('.back');
 
-        // 1. Schuif de oude weg
+        // 1. Slide Out
         if (direction === 'next') mover.classList.add('slide-out-left');
         else mover.classList.add('slide-out-right');
         
-        // 2. Wacht heel even (sneller dan voorheen)
+        // 2. Wacht tot kaart weg is
         setTimeout(() => {
-            // Reset de kaart naar voorkant
+            // TRANSITIES UITZETTEN (zodat reset direct is)
+            front.style.transition = 'none';
+            back.style.transition = 'none';
+
+            // RESET NAAR VOORKANT (Onzichtbaar voor gebruiker want kaart is weg)
             flipper.classList.remove('flipped'); 
             
-            // Verwijder de "weg" classes
-            mover.classList.remove('slide-out-left', 'slide-out-right');
-            
-            // Update data
+            // DATA UPDATEN
             callback();
             
-            // Kom binnen met animatie
+            // FORCE REFLOW (Browser dwingen update toe te passen)
+            void flipper.offsetWidth;
+
+            // TRANSITIES WEER AAN
+            front.style.transition = '';
+            back.style.transition = '';
+            
+            // 3. Slide In (schuif oude class weg en nieuwe erin)
+            mover.classList.remove('slide-out-left', 'slide-out-right');
             mover.classList.add('slide-in');
             
-            // Verwijder animatie class na afloop
+            // Animatie class weghalen na afloop
             setTimeout(() => {
                 mover.classList.remove('slide-in');
             }, 300);
 
-        }, 200); // Korte wacht voor sneller gevoel
+        }, 200); 
     }
 
     // --- BROWSE LOGIC ---
