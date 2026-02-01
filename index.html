@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Frans Trainer Fast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* HET INDIGO THEMA */
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            
+            --success-bg: #d1fae5;
+            --success-text: #065f46;
+            
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            
+            /* De geliefde paars/blauwe achtergrond */
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            --card-radius: 20px;
+            --speed: 0.25s; /* Snelle animaties */
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-gradient); 
+            margin: 0; 
+            padding: 20px; 
+            color: var(--text-main); 
+            min-height: 100vh;
+            /* Flexbox zorgt voor centrering op grote schermen */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            overflow: hidden; 
+        }
+
+        /* --- RESPONSIEVE CONTAINER --- */
+        .container { 
+            width: 100%; 
+            max-width: 480px; /* Op desktop niet te breed */
+            background: #ffffff; 
+            border-radius: var(--card-radius); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 85vh; /* Neemt bijna heel het scherm in */
+            max-height: 700px;
+            overflow: hidden;
+        }
+
+        /* Mobiele aanpassingen: beeldvullend */
+        @media (max-width: 480px) {
+            body { padding: 0; }
+            .container { 
+                height: 100vh; 
+                max-height: none; 
+                border-radius: 0; 
+            }
+        }
+
+        /* Navigatie */
+        .nav-pill-container {
+            padding: 10px;
+            display: flex;
+            gap: 5px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .nav-btn { 
+            flex: 1; 
+            padding: 12px 0; 
+            border: none; 
+            background: transparent; 
+            cursor: pointer; 
+            font-weight: 600; 
+            color: var(--text-light); 
+            transition: 0.2s; 
+            font-size: 0.9em;
+            border-radius: 8px;
+        }
+        
+        .nav-btn.active { 
+            background: white; 
+            color: var(--primary); 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Secties */
+        .section { 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            width: 100%; 
+            padding: 20px; 
+            box-sizing: border-box; 
+            flex: 1;
+            /* Zorgt dat inhoud niet buiten beeld valt */
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+        .section.active { display: flex; }
+
+        /* --- KAART STIJL (AANGEPAST: Geen 3D draai meer, maar Fade) --- */
+        .card-stage { 
+            /* perspective: 1000px;  <-- VERWIJDERD zodat het plat blijft */
+            width: 100%;
+            height: 280px; 
+            margin: 10px 0; 
+            position: relative;
+        }
+        
+        /* De wrapper die beweegt (links/rechts) */
+        .card-mover {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform var(--speed) ease-out, opacity var(--speed) ease-out;
+        }
+
+        /* De wrapper die de 'klik' afhandelt */
+        .card-flipper { 
+            width: 100%; 
+            height: 100%; 
+            position: relative; 
+            /* transform-style: preserve-3d; <-- VERWIJDERD */
+            transition: transform 0.2s ease; /* Snelle schaal-animatie */
+            cursor: pointer;
+            border-radius: var(--card-radius);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* In plaats van draaien, maken we hem heel even iets kleiner (klik effect) */
+        .card-flipper.flipped { 
+            transform: scale(0.98); 
+        }
+
+        .front, .back { 
+            position: absolute; width: 100%; height: 100%; 
+            /* backface-visibility: hidden; <-- NIET MEER NODIG */
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 20px; text-align: center; border-radius: var(--card-radius); 
+            box-sizing: border-box; background: white; border: 1px solid #f3f4f6;
+            
+            /* NIEUW: Fade effect */
+            transition: opacity 0.3s ease-in-out, visibility 0.3s;
+        }
+        
+        /* De voorkant is zichtbaar als standaard */
+        .front {
+            opacity: 1;
+            visibility: visible;
+            z-index: 2;
+        }
+
+        /* De achterkant */
+        .back { 
+            /* transform: rotateY(180deg); <-- VERWIJDERD, tekst moet recht staan */
+            background: #f8fafc; 
+            border: 2px solid var(--primary); 
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1;
+        }
+
+        /* WANNEER GEFLIPT: */
+        .card-flipper.flipped .front {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .card-flipper.flipped .back {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .content-front { font-size: 1.5em; font-weight: 700; color: var(--text-main); }
+        .content-back { font-size: 1.7em; font-weight: 700; color: var(--primary); }
+
+        /* --- SIMPELE SCHUIF ANIMATIES --- */
+        /* Naar Links Weg */
+        .slide-out-left { transform: translateX(-50px); opacity: 0; }
+        /* Naar Rechts Weg */
+        .slide-out-right { transform: translateX(50px); opacity: 0; }
+        
+        /* Binnenkomen (startpositie wordt met JS gezet) */
+        .slide-in { animation: slideIn var(--speed) ease-out forwards; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* --- UI ELEMENTEN --- */
+        .progress-pill { 
+            background: #f3f4f6; padding: 5px 15px; border-radius: 15px; 
+            color: var(--text-light); font-size: 0.8em; font-weight: 600; margin-bottom: 10px;
+        }
+
+        /* Toetsenbord/Controls */
+        .controls-row {
+            display: flex; justify-content: center; gap: 10px; margin-top: auto; 
+            width: 100%; padding-top: 15px; border-top: 1px solid #f3f4f6;
+        }
+        
+        .control-btn {
+            background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+            padding: 10px; flex: 1; display: flex; flex-direction: column; 
+            align-items: center; cursor: pointer; transition: 0.1s;
+        }
+        .control-btn:active { background: #f3f4f6; transform: scale(0.98); }
+        .icon-lg { font-size: 1.4em; margin-bottom: 2px; }
+        .label-sm { font-size: 0.7em; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
+
+        /* Grote Knoppen (Goed/Fout) */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: auto; }
+        
+        .btn-big {
+            border: none; border-radius: 16px; padding: 15px; 
+            font-size: 1em; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-wrong { background: var(--danger-bg); color: var(--danger-text); }
+        .btn-correct { background: var(--success-bg); color: var(--success-text); }
+        .btn-primary { background: var(--primary); color: white; width: 100%; margin-top: 10px;}
+
+        /* Input Veld */
+        .input-modern { 
+            width: 100%; padding: 15px; font-size: 1.2em; border: 2px solid #e5e7eb; 
+            border-radius: 12px; margin-bottom: 20px; text-align: center; outline: none; 
+            transition: 0.2s; box-sizing: border-box; background: #f9fafb;
+        }
+        .input-modern:focus { border-color: var(--primary); background: white; }
+
+        .result-box { text-align: center; padding: 30px 20px; width: 100%; }
+        .score-circle { 
+            width: 80px; height: 80px; background: var(--primary); color: white; 
+            border-radius: 50%; margin: 0 auto 15px; display: flex; 
+            align-items: center; justify-content: center; font-size: 2.5em;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-pill-container">
+        <button class="nav-btn active" onclick="showSection('browse')">Bekijken</button>
+        <button class="nav-btn" onclick="showSection('cards')">Oefenen</button>
+        <button class="nav-btn" onclick="showSection('write')">Schrijven</button>
+    </div>
+
+    <div id="browse" class="section active">
+        <div class="progress-pill" id="browseProgress">1 / 100</div>
+        
+        <div class="card-stage">
+            <div class="card-mover" id="browseMover">
+                <div class="card-flipper" id="browseCard" onclick="flipBrowseCard()">
+                    <div class="front">
+                        <div class="content-front" id="browseFront">Laden...</div>
+                    </div>
+                    <div class="back">
+                        <div class="content-back" id="browseBack">Antwoord</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-row">
+            <button class="control-btn" onclick="prevBrowse()">
+                <span class="icon-lg">⬅️</span>
+                <span class="label-sm">Vorige</span>
+            </button>
+            <button class="control-btn" onclick="flipBrowseCard()">
+                <span class="icon-lg">🔄</span>
+                <span class="label-sm">Draaien</span>
+            </button>
+            <button class="control-btn" onclick="nextBrowse()">
+                <span class="icon-lg">➡️</span>
+                <span class="label-sm">Volgende</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="cards" class="section">
+        <div id="gameUI" style="width: 100%; display: flex; flex-direction: column; flex: 1;">
+            <div style="text-align: center;"><span class="progress-pill" id="cardProgress">Kaart 1</span></div>
+            
+            <div class="card-stage">
+                <div class="card-mover" id="gameMover">
+                    <div class="card-flipper" id="gameCard" onclick="flipGameCard()">
+                        <div class="front">
+                            <div class="content-front" id="cardFront">Laden...</div>
+                        </div>
+                        <div class="back">
+                            <div class="content-back" id="cardBack">Antwoord</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-grid">
+                <button class="btn-big btn-wrong" onclick="handleCardResult(false)">
+                    ❌ Nog niet
+                </button>
+                <button class="btn-big btn-correct" onclick="handleCardResult(true)">
+                    ✅ Ken ik
+                </button>
+            </div>
+        </div>
+
+        <div id="gameResult" class="result-box" style="display:none;">
+            <div class="score-circle">🏆</div>
+            <h2>Klaar!</h2>
+            <p id="scoreDisplay" style="color:var(--text-light); margin-bottom:20px;">Resultaten...</p>
+            <button class="btn-big btn-primary" id="retryBtn" onclick="retryUnknown()" style="background:#f59e0b; margin-bottom:10px;">
+                Fouten herhalen
+            </button>
+            <button class="btn-big btn-primary" onclick="resetFlashcards()" style="background:transparent; color:var(--text-light); border:1px solid #eee;">
+                Alles resetten
+            </button>
+        </div>
+    </div>
+
+    <div id="write" class="section">
+        <div id="writeUI" style="width: 100%; max-width:400px; text-align:center; display: flex; flex-direction: column; flex: 1;">
+            <div style="text-align: center;"><span class="progress-pill" id="writeProgress">Woord 1</span></div>
+            
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <h3 style="color:var(--text-light); font-size:0.8em; text-transform:uppercase;">Vertaal naar Frans</h3>
+                <div style="font-size:1.6em; font-weight:700; margin-bottom:20px; color:var(--text-main);" id="writeQ">...</div>
+                
+                <input type="text" id="writeInput" class="input-modern" placeholder="Typ hier..." autocomplete="off" onkeypress="handleEnter(event)">
+                <div id="writeFeedback" style="height: 30px; margin-bottom: 10px; font-weight: 600;"></div>
+            </div>
+            
+            <button class="btn-big btn-primary" id="checkBtn" onclick="checkWrite()">Controleren</button>
+            <button class="btn-big btn-primary" id="nextWriteBtn" style="display:none; background:#1f2937;" onclick="nextWrite()">Volgende</button>
+        </div>
+        
+        <div id="writeResult" class="result-box" style="display:none;">
+            <div class="score-circle">✍️</div>
+            <h2>Toets Klaar</h2>
+            <p>Je hebt alle woorden gehad.</p>
+            <button class="btn-big btn-primary" onclick="initWrite()">Opnieuw</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const vocabulary = [
+        { nl: "het abonnement", fr: "l'abonnement (m)" },
+        { nl: "de activiteit", fr: "l'activité (f)" },
+        { nl: "het voordeel", fr: "l'avantage (m)" },
+        { nl: "de bibliotheek", fr: "la bibliothèque" },
+        { nl: "de communicatie", fr: "la communication" },
+        { nl: "de ontwikkeling", fr: "le développement" },
+        { nl: "het nadeel", fr: "l'inconvénient (m)" },
+        { nl: "het interview", fr: "l'interview (f)" },
+        { nl: "de brief", fr: "la lettre" },
+        { nl: "het boek", fr: "le livre" },
+        { nl: "de boodschap / het bericht", fr: "le message" },
+        { nl: "het publiek / de doelgroep", fr: "le public / le public cible" },
+        { nl: "prettig", fr: "amusant(e)" },
+        { nl: "dom", fr: "bête" },
+        { nl: "interessant", fr: "intéressant(e)" },
+        { nl: "vrij", fr: "libre" },
+        { nl: "stom", fr: "nul, nulle" },
+        { nl: "dol zijn op / heel graag zien", fr: "adorer" },
+        { nl: "houden van / graag zien", fr: "aimer" },
+        { nl: "communiceren", fr: "communiquer" },
+        { nl: "luisteren (naar iets)", fr: "écouter (quelque chose)" },
+        { nl: "horen", fr: "entendre" },
+        { nl: "lezen", fr: "lire" },
+        { nl: "spreken over", fr: "parler de" },
+        { nl: "een abonnement nemen", fr: "prendre un abonnement" },
+        { nl: "nadenken", fr: "réfléchir" },
+        { nl: "(naar iets) kijken", fr: "regarder (quelque chose)" },
+        { nl: "zich abonneren (op)", fr: "s'abonner (à)" },
+        { nl: "zich richten tot", fr: "s'adresser à" },
+        { nl: "zich herinneren", fr: "se souvenir de" },
+        { nl: "zich interesseren voor", fr: "s'intéresser à" },
+        { nl: "de app", fr: "l'appli(cation) (f)" },
+        { nl: "de klik", fr: "le clic" },
+        { nl: "de surfer", fr: "l'internaute (m/f)" },
+        { nl: "de link", fr: "le lien" },
+        { nl: "het paswoord", fr: "le mot de passe" },
+        { nl: "de zoekmachine", fr: "le moteur de recherche" },
+        { nl: "de login", fr: "le nom d'utilisateur" },
+        { nl: "de melding", fr: "la notification" },
+        { nl: "de ICT", fr: "les TIC" },
+        { nl: "digitaal", fr: "numérique" },
+        { nl: "toegang hebben tot", fr: "avoir accès à" },
+        { nl: "klikken", fr: "cliquer" },
+        { nl: "de computer uitzetten", fr: "éteindre l'ordinateur" },
+        { nl: "installeren", fr: "installer" },
+        { nl: "surfen", fr: "naviguer" },
+        { nl: "opslaan", fr: "sauvegarder" },
+        { nl: "zich aanmelden", fr: "se connecter" },
+        { nl: "zich uit de slag trekken", fr: "se débrouiller" },
+        { nl: "zich afmelden", fr: "se déconnecter" },
+        { nl: "intikken", fr: "taper" },
+        { nl: "downloaden", fr: "télécharger" },
+        { nl: "het evenement", fr: "l'événement (m)" },
+        { nl: "het nieuwsfeit", fr: "le fait divers" },
+        { nl: "de informatie", fr: "l'information (f)" },
+        { nl: "de journalist", fr: "le journaliste" },
+        { nl: "de wereld", fr: "le monde" },
+        { nl: "de politiek", fr: "la politique" },
+        { nl: "de sport", fr: "les sports" },
+        { nl: "de vedette", fr: "la vedette" },
+        { nl: "op zoek zijn naar", fr: "être à la recherche de" },
+        { nl: "informeren", fr: "informer" },
+        { nl: "liegen", fr: "mentir" },
+        { nl: "durven", fr: "oser" },
+        { nl: "zich concentreren", fr: "se concentrer" },
+        { nl: "zich vergissen", fr: "se tromper" },
+        { nl: "zich informeren", fr: "s'informer" },
+        { nl: "de actualiteit volgen", fr: "suivre l'actualité" },
+        { nl: "zappen", fr: "zapper" },
+        { nl: "in verband met", fr: "à propos de" },
+        { nl: "de zender", fr: "la chaîne" },
+        { nl: "het scherm", fr: "l'écran (m)" },
+        { nl: "de uitzending", fr: "l'émission (f)" },
+        { nl: "het beeld", fr: "l'image (f)" },
+        { nl: "de verkeersinformatie", fr: "l'info trafic (f)" },
+        { nl: "het journaal", fr: "le journal télévisé" },
+        { nl: "de presentator", fr: "le présentateur" },
+        { nl: "de radio", fr: "la radio" },
+        { nl: "de omroeper", fr: "le speaker" },
+        { nl: "de technicus", fr: "le technicien" },
+        { nl: "de tv", fr: "la télé" },
+        { nl: "de afstandsbediening", fr: "la télécommande" },
+        { nl: "het volume", fr: "le volume" },
+        { nl: "de klank luider zetten", fr: "augmenter le son" },
+        { nl: "de klank stiller zetten", fr: "baisser le son" },
+        { nl: "naar het nieuws luisteren", fr: "écouter les nouvelles" },
+        { nl: "opnemen", fr: "enregistrer" },
+        { nl: "presenteren", fr: "présenter" },
+        { nl: "naar het nieuws kijken", fr: "regarder les nouvelles" },
+        { nl: "het internet", fr: "le Net / le site" },
+        { nl: "online lezen", fr: "lire en ligne" },
+        { nl: "surfen", fr: "surfer" },
+        { nl: "de reclame", fr: "la publicité" },
+        { nl: "onthouden", fr: "retenir" },
+        { nl: "de hoofdtelefoon", fr: "le casque" },
+        { nl: "de sessie", fr: "la session" },
+        { nl: "gamen", fr: "jouer à un jeu vidéo" },
+        { nl: "de batterij", fr: "la batterie" },
+        { nl: "de lader", fr: "le chargeur" },
+        { nl: "de hoes", fr: "la coque" },
+        { nl: "de smartphone", fr: "le smartphone" },
+        { nl: "uitgerust", fr: "équipé" },
+        { nl: "bezet", fr: "occupé" },
+        { nl: "aanzetten", fr: "allumer" },
+        { nl: "bellen", fr: "appeler" },
+        { nl: "uitzetten", fr: "éteindre" },
+        { nl: "ontvangen", fr: "recevoir" },
+        { nl: "opladen", fr: "recharger" },
+        { nl: "opbellen", fr: "téléphoner" },
+        { nl: "het e-mailadres", fr: "l'adresse mail (f)" },
+        { nl: "de blog", fr: "le blog" },
+        { nl: "de e-mail", fr: "l'e-mail (m)" },
+        { nl: "de smiley", fr: "l'émoticône (f)" },
+        { nl: "het forum", fr: "le forum" },
+        { nl: "de hashtag", fr: "le hashtag" },
+        { nl: "de sociale media", fr: "les réseaux sociaux" },
+        { nl: "de chat", fr: "le tchat" },
+        { nl: "verzenden", fr: "envoyer" },
+        { nl: "reageren", fr: "réagir" },
+        { nl: "antwoorden", fr: "répondre" },
+        { nl: "online", fr: "en ligne" },
+        { nl: "bereikbaar zijn", fr: "être joignable" },
+        { nl: "het tijdschrift", fr: "la revue" },
+        { nl: "het magazijn", fr: "l'entrepôt (m)" },
+        { nl: "de bundel", fr: "le recueil" },
+        { nl: "eerst", fr: "d'abord" },
+        { nl: "vervolgens", fr: "ensuite" },
+        { nl: "ten slotte", fr: "finalement" },
+        { nl: "men moet", fr: "il faut" },
+        { nl: "u moet", fr: "vous devez" },
+        { nl: "vergeet niet om", fr: "n'oubliez pas de" },
+        { nl: "het is verplicht om", fr: "il est obligatoire de" },
+        { nl: "surf naar", fr: "surfe vers" },
+        { nl: "klik op", fr: "clique sur" },
+        { nl: "vul in", fr: "complète" },
+        { nl: "aanvaarden", fr: "accepter" },
+        { nl: "kiezen", fr: "choisir" },
+        { nl: "bevestigen", fr: "confirmer" },
+        { nl: "invoeren", fr: "introduire" }
+    ];
+
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        
+        const btns = document.querySelectorAll('.nav-btn');
+        if(id === 'browse') btns[0].classList.add('active');
+        if(id === 'cards') btns[1].classList.add('active');
+        if(id === 'write') btns[2].classList.add('active');
+    }
+
+    // --- AUDIO HELPER ---
+    function cleanTextForSpeech(text) {
+        let clean = text.replace(/\(m\)|\(f\)|\(m\/f\)|\(v\)/gi, "");
+        clean = clean.replace(/\//g, ",");
+        return clean.trim();
+    }
+
+    function speakText(text) {
+        const textToSpeak = cleanTextForSpeech(text);
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=fr&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`;
+        const audio = new Audio(url);
+        audio.onerror = () => {
+             window.speechSynthesis.cancel();
+             const utter = new SpeechSynthesisUtterance(textToSpeak);
+             utter.lang = 'fr-FR';
+             window.speechSynthesis.speak(utter);
+        };
+        audio.play();
+    }
+
+    // --- SIMPLE ANIMATION ENGINE ---
+    function animateSimpleSwitch(moverId, flipperId, direction, callback) {
+        const mover = document.getElementById(moverId);
+        const flipper = document.getElementById(flipperId);
+
+        // 1. Schuif de oude weg
+        if (direction === 'next') mover.classList.add('slide-out-left');
+        else mover.classList.add('slide-out-right');
+        
+        // 2. Wacht heel even (sneller dan voorheen)
+        setTimeout(() => {
+            // Reset de kaart naar voorkant
+            flipper.classList.remove('flipped'); 
+            
+            // Verwijder de "weg" classes
+            mover.classList.remove('slide-out-left', 'slide-out-right');
+            
+            // Update data
+            callback();
+            
+            // Kom binnen met animatie
+            mover.classList.add('slide-in');
+            
+            // Verwijder animatie class na afloop
+            setTimeout(() => {
+                mover.classList.remove('slide-in');
+            }, 300);
+
+        }, 200); // Korte wacht voor sneller gevoel
+    }
+
+    // --- BROWSE LOGIC ---
+    let browseIndex = 0;
+
+    function updateBrowseContent() {
+        document.getElementById('browseProgress').innerText = `${browseIndex + 1} / ${vocabulary.length}`;
+        document.getElementById('browseFront').innerText = vocabulary[browseIndex].nl;
+        document.getElementById('browseBack').innerText = vocabulary[browseIndex].fr;
+    }
+
+    function flipBrowseCard() {
+        const card = document.getElementById('browseCard');
+        const isFlippingToBack = !card.classList.contains('flipped');
+        card.classList.toggle('flipped');
+        if (isFlippingToBack) setTimeout(() => speakText(vocabulary[browseIndex].fr), 300);
+    }
+
+    function nextBrowse(e) {
+        if(e) e.stopPropagation();
+        if (browseIndex < vocabulary.length - 1) {
+            browseIndex++;
+            animateSimpleSwitch('browseMover', 'browseCard', 'next', updateBrowseContent);
+        }
+    }
+
+    function prevBrowse(e) {
+        if(e) e.stopPropagation();
+        if (browseIndex > 0) {
+            browseIndex--;
+            animateSimpleSwitch('browseMover', 'browseCard', 'prev', updateBrowseContent);
+        }
+    }
+
+    // --- FLASHCARD LOGIC ---
+    let cardDeck = [...vocabulary];
+    let unknownStack = [];
+    let cardIndex = 0;
+
+    function initFlashcards() {
+        cardDeck.sort(() => Math.random() - 0.5); 
+        cardIndex = 0;
+        unknownStack = [];
+        document.getElementById('gameUI').style.display = 'flex';
+        document.getElementById('gameResult').style.display = 'none';
+        updateCardContent();
+    }
+
+    function updateCardContent() {
+        document.getElementById('cardProgress').innerText = `Kaart ${cardIndex + 1} / ${cardDeck.length}`;
+        document.getElementById('cardFront').innerText = cardDeck[cardIndex].nl;
+        document.getElementById('cardBack').innerText = cardDeck[cardIndex].fr;
+    }
+
+    function flipGameCard() {
+        const card = document.getElementById('gameCard');
+        const isFlippingToBack = !card.classList.contains('flipped');
+        card.classList.toggle('flipped');
+        if (isFlippingToBack) setTimeout(() => speakText(cardDeck[cardIndex].fr), 300);
+    }
+
+    function handleCardResult(known) {
+        if (!known) unknownStack.push(cardDeck[cardIndex]);
+        cardIndex++;
+        
+        if (cardIndex < cardDeck.length) {
+            animateSimpleSwitch('gameMover', 'gameCard', 'next', updateCardContent);
+        } else {
+            showCardResults();
+        }
+    }
+
+    function showCardResults() {
+        document.getElementById('gameUI').style.display = 'none';
+        document.getElementById('gameResult').style.display = 'block';
+        document.getElementById('scoreDisplay').innerText = `${cardDeck.length - unknownStack.length} van de ${cardDeck.length} correct`;
+        document.getElementById('retryBtn').style.display = unknownStack.length > 0 ? "block" : "none";
+    }
+
+    function retryUnknown() { cardDeck = [...unknownStack]; initFlashcards(); }
+    function resetFlashcards() { cardDeck = [...vocabulary]; initFlashcards(); }
+
+    // --- WRITE LOGIC ---
+    let writeIdx = 0;
+    let writeDeck = [...vocabulary];
+
+    function initWrite() {
+        writeDeck.sort(() => Math.random() - 0.5);
+        writeIdx = 0;
+        document.getElementById('writeUI').style.display = 'flex';
+        document.getElementById('writeResult').style.display = 'none';
+        showWriteQ();
+    }
+
+    function showWriteQ() {
+        document.getElementById('writeProgress').innerText = `Woord ${writeIdx + 1} / ${writeDeck.length}`;
+        document.getElementById('writeQ').innerText = writeDeck[writeIdx].nl;
+        
+        const inp = document.getElementById('writeInput');
+        inp.value = "";
+        inp.disabled = false;
+        inp.focus();
+        
+        document.getElementById('writeFeedback').innerHTML = "";
+        document.getElementById('nextWriteBtn').style.display = "none";
+        document.getElementById('checkBtn').style.display = "block";
+    }
+
+    function checkWrite() {
+        const input = document.getElementById('writeInput').value.trim().toLowerCase();
+        const correctFull = writeDeck[writeIdx].fr;
+        const cleanCorrect = correctFull.toLowerCase()
+            .replace(/\(m\)|\(f\)|\(m\/f\)|\(v\)/g, "")
+            .replace(/\(.*\)/g, "")
+            .trim();
+        
+        const isCorrect = input === cleanCorrect || (correctFull.toLowerCase().includes(input) && input.length > 2);
+
+        const feedback = document.getElementById('writeFeedback');
+        const nextBtn = document.getElementById('nextWriteBtn');
+        const checkBtn = document.getElementById('checkBtn');
+
+        if (isCorrect) {
+            feedback.innerHTML = "<span style='color:var(--success-text)'>✅ Correct!</span> " + correctFull;
+        } else {
+            feedback.innerHTML = "<span style='color:var(--danger-text)'>❌ Helaas.</span> Het was: <strong>" + correctFull + "</strong>";
+        }
+        
+        speakText(correctFull);
+
+        document.getElementById('writeInput').disabled = true;
+        checkBtn.style.display = "none";
+        nextBtn.style.display = "block";
+        nextBtn.focus(); 
+
+        if (writeIdx >= writeDeck.length - 1) {
+            nextBtn.innerText = "Bekijk resultaat";
+        } else {
+            nextBtn.innerText = "Volgende";
+        }
+    }
+
+    function nextWrite() {
+        writeIdx++;
+        if (writeIdx < writeDeck.length) {
+            showWriteQ();
+        } else {
+            document.getElementById('writeUI').style.display = 'none';
+            document.getElementById('writeResult').style.display = 'block';
+        }
+    }
+
+    function handleEnter(e) {
+        if(e.key === 'Enter') {
+            e.preventDefault();
+            if(document.getElementById('checkBtn').style.display !== 'none') {
+                checkWrite();
+            } else {
+                nextWrite();
+            }
+        }
+    }
+
+    // --- KEYBOARD LISTENER ---
+    document.addEventListener('keydown', function(e) {
+        const browseActive = document.getElementById('browse').classList.contains('active');
+        
+        if (browseActive) {
+            if (e.key === 'ArrowLeft') {
+                prevBrowse();
+            } else if (e.key === 'ArrowRight') {
+                nextBrowse();
+            } else if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault(); 
+                flipBrowseCard();
+            }
+        }
+    });
+
+    // START
+    updateBrowseContent();
+    initFlashcards();
+    initWrite();
+
+</script>
+
+</body>
+</html>
